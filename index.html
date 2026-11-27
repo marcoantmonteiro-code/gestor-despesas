@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gestor de Despesas</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link rel="stylesheet" href="assets/style.css">
+</head>
+<body class="bg-zinc-100 text-zinc-900 antialiased">
+  <div class="min-h-screen lg:flex">
+    <aside class="w-full lg:w-64 bg-zinc-900 text-zinc-100 lg:min-h-screen">
+      <div class="p-6 border-b border-zinc-800">
+        <p class="text-xs uppercase tracking-widest text-zinc-400">Finanças pessoais</p>
+        <h1 class="text-xl font-semibold mt-1">Gestor de Despesas</h1>
+      </div>
+      <nav class="p-4 space-y-1">
+        <a href="#dashboard" class="flex items-center gap-3 px-3 py-2 rounded-lg bg-zinc-800 text-white">
+          <span class="w-2 h-2 rounded-full bg-emerald-400"></span> Dashboard
+        </a>
+        <a href="#movimentos" class="flex items-center gap-3 px-3 py-2 rounded-lg text-zinc-300 hover:bg-zinc-800 hover:text-white">
+          <span class="w-2 h-2 rounded-full bg-indigo-400"></span> Movimentos
+        </a>
+        <a href="#categorias" class="flex items-center gap-3 px-3 py-2 rounded-lg text-zinc-300 hover:bg-zinc-800 hover:text-white">
+          <span class="w-2 h-2 rounded-full bg-amber-400"></span> Categorias
+        </a>
+      </nav>
+      <div class="p-4 mt-4 text-xs text-zinc-500">
+        Dados guardados em MySQL via PHP.
+      </div>
+    </aside>
+
+    <main class="flex-1 p-4 lg:p-8">
+      <header class="flex flex-col xl:flex-row xl:items-end xl:justify-between gap-4 mb-8">
+        <div>
+          <p class="text-sm text-zinc-500">Visão geral</p>
+          <h2 class="text-3xl font-semibold tracking-tight">Dashboard</h2>
+        </div>
+        <div class="flex flex-wrap items-end gap-3">
+          <label class="text-sm">
+            <span class="block text-zinc-500 mb-1">Mês</span>
+            <select id="seletor-mes" class="bg-white border border-zinc-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"></select>
+          </label>
+          <label class="text-sm">
+            <span class="block text-zinc-500 mb-1">Ano</span>
+            <select id="seletor-ano" class="bg-white border border-zinc-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"></select>
+          </label>
+          <button id="btn-novo-movimento" class="bg-indigo-600 hover:bg-indigo-700 text-white font-medium px-4 py-2.5 rounded-lg shadow-sm">
+            + Novo movimento
+          </button>
+        </div>
+      </header>
+
+      <section id="dashboard" class="space-y-6">
+        <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-4">
+          <div class="bg-white rounded-xl border border-zinc-200 p-5 shadow-sm">
+            <p class="text-sm text-zinc-500">Entradas</p>
+            <p id="kpi-entradas" class="text-2xl font-semibold text-emerald-600 mt-2">0,00 €</p>
+          </div>
+          <div class="bg-white rounded-xl border border-zinc-200 p-5 shadow-sm">
+            <p class="text-sm text-zinc-500">Saídas</p>
+            <p id="kpi-saidas" class="text-2xl font-semibold text-rose-600 mt-2">0,00 €</p>
+          </div>
+          <div class="bg-white rounded-xl border border-zinc-200 p-5 shadow-sm">
+            <p class="text-sm text-zinc-500">Saldo</p>
+            <p id="kpi-saldo" class="text-2xl font-semibold mt-2">0,00 €</p>
+          </div>
+          <div class="bg-white rounded-xl border border-zinc-200 p-5 shadow-sm">
+            <p class="text-sm text-zinc-500">Média diária</p>
+            <p id="kpi-media" class="text-2xl font-semibold mt-2">0,00 €</p>
+          </div>
+          <div class="bg-white rounded-xl border border-zinc-200 p-5 shadow-sm">
+            <p class="text-sm text-zinc-500">Desvio padrão</p>
+            <p id="kpi-desvio" class="text-2xl font-semibold mt-2">0,00 €</p>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 xl:grid-cols-5 gap-6">
+          <div class="xl:col-span-2 bg-white rounded-xl border border-zinc-200 p-5 shadow-sm">
+            <div class="flex items-center justify-between mb-4">
+              <h3 class="font-semibold">Gastos por categoria</h3>
+              <span class="text-xs text-zinc-500">Mês selecionado</span>
+            </div>
+            <div class="chart-box">
+              <canvas id="chart-categorias"></canvas>
+            </div>
+          </div>
+          <div class="xl:col-span-3 bg-white rounded-xl border border-zinc-200 p-5 shadow-sm">
+            <div class="flex items-center justify-between mb-4">
+              <h3 class="font-semibold">Evolução mensal</h3>
+              <span class="text-xs text-zinc-500">Ano selecionado</span>
+            </div>
+            <div class="chart-box">
+              <canvas id="chart-evolucao"></canvas>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="movimentos" class="mt-10">
+        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-4">
+          <div>
+            <h3 class="text-xl font-semibold">Movimentos</h3>
+            <p class="text-sm text-zinc-500">Entradas e saídas do mês selecionado.</p>
+          </div>
+          <div class="flex flex-wrap gap-2">
+            <input id="filtro-texto" type="search" placeholder="Pesquisar descrição..." class="bg-white border border-zinc-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+            <select id="filtro-tipo" class="bg-white border border-zinc-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+              <option value="">Todos os tipos</option>
+              <option value="entrada">Entradas</option>
+              <option value="saida">Saídas</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="bg-white rounded-xl border border-zinc-200 shadow-sm overflow-hidden">
+          <div class="overflow-x-auto">
+            <table class="w-full text-sm">
+              <thead class="bg-zinc-50 text-zinc-500 text-left">
+                <tr>
+                  <th class="px-5 py-3 font-medium">Data</th>
+                  <th class="px-5 py-3 font-medium">Descrição</th>
+                  <th class="px-5 py-3 font-medium">Categoria</th>
+                  <th class="px-5 py-3 font-medium">Tipo</th>
+                  <th class="px-5 py-3 font-medium text-right">Valor</th>
+                  <th class="px-5 py-3 font-medium text-right">Ações</th>
+                </tr>
+              </thead>
+              <tbody id="tabela-movimentos" class="divide-y divide-zinc-100"></tbody>
+            </table>
+          </div>
+          <div id="tabela-vazia" class="hidden p-8 text-center text-zinc-500">
+            Ainda não há movimentos neste mês.
+          </div>
+        </div>
+      </section>
+
+      <section id="categorias" class="mt-10 mb-16">
+        <div class="flex items-center justify-between mb-4">
+          <div>
+            <h3 class="text-xl font-semibold">Categorias</h3>
+            <p class="text-sm text-zinc-500">As categorias podem ser usadas em entradas e saídas.</p>
+          </div>
+          <button id="btn-nova-categoria" class="bg-zinc-900 hover:bg-zinc-800 text-white font-medium px-4 py-2 rounded-lg">
+            + Nova categoria
+          </button>
+        </div>
+        <div id="lista-categorias" class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4"></div>
+      </section>
+    </main>
+  </div>
+
+  <div id="modal-movimento" class="hidden fixed inset-0 z-50 bg-zinc-950/50 p-4">
+    <div class="bg-white rounded-xl shadow-xl max-w-lg w-full mx-auto mt-10 p-6">
+      <div class="flex items-center justify-between mb-5">
+        <h3 id="titulo-modal-movimento" class="text-lg font-semibold">Novo movimento</h3>
+        <button type="button" data-fechar-modal="modal-movimento" class="text-zinc-500 hover:text-zinc-900 text-xl">&times;</button>
+      </div>
+      <form id="form-movimento" class="space-y-4">
+        <input type="hidden" id="movimento-id">
+        <label class="block text-sm">
+          <span class="text-zinc-600">Descrição</span>
+          <input id="movimento-descricao" required maxlength="255" class="mt-1 w-full border border-zinc-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+        </label>
+        <div class="grid grid-cols-2 gap-4">
+          <label class="block text-sm">
+            <span class="text-zinc-600">Valor (€)</span>
+            <input id="movimento-valor" type="number" min="0.01" step="0.01" required class="mt-1 w-full border border-zinc-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+          </label>
+          <label class="block text-sm">
+            <span class="text-zinc-600">Data</span>
+            <input id="movimento-data" type="date" required class="mt-1 w-full border border-zinc-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+          </label>
+        </div>
+        <div class="grid grid-cols-2 gap-4">
+          <label class="block text-sm">
+            <span class="text-zinc-600">Tipo</span>
+            <select id="movimento-tipo" class="mt-1 w-full border border-zinc-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+              <option value="saida">Saída</option>
+              <option value="entrada">Entrada</option>
+            </select>
+          </label>
+          <label class="block text-sm">
+            <span class="text-zinc-600">Categoria</span>
+            <select id="movimento-categoria" class="mt-1 w-full border border-zinc-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+              <option value="">Sem categoria</option>
+            </select>
+          </label>
+        </div>
+        <div class="flex justify-end gap-3 pt-2">
+          <button type="button" data-fechar-modal="modal-movimento" class="px-4 py-2 rounded-lg border border-zinc-300 text-zinc-700 hover:bg-zinc-50">Cancelar</button>
+          <button type="submit" class="px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white font-medium">Guardar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div id="modal-categoria" class="hidden fixed inset-0 z-50 bg-zinc-950/50 p-4">
+    <div class="bg-white rounded-xl shadow-xl max-w-md w-full mx-auto mt-16 p-6">
+      <div class="flex items-center justify-between mb-5">
+        <h3 id="titulo-modal-categoria" class="text-lg font-semibold">Nova categoria</h3>
+        <button type="button" data-fechar-modal="modal-categoria" class="text-zinc-500 hover:text-zinc-900 text-xl">&times;</button>
+      </div>
+      <form id="form-categoria" class="space-y-4">
+        <input type="hidden" id="categoria-id">
+        <label class="block text-sm">
+          <span class="text-zinc-600">Nome</span>
+          <input id="categoria-nome" required maxlength="50" class="mt-1 w-full border border-zinc-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+        </label>
+        <label class="block text-sm">
+          <span class="text-zinc-600">Cor</span>
+          <input id="categoria-cor" type="color" value="#71717a" class="mt-1 h-11 w-full border border-zinc-300 rounded-lg p-1 bg-white">
+        </label>
+        <div class="flex justify-end gap-3 pt-2">
+          <button type="button" data-fechar-modal="modal-categoria" class="px-4 py-2 rounded-lg border border-zinc-300 text-zinc-700 hover:bg-zinc-50">Cancelar</button>
+          <button type="submit" class="px-4 py-2 rounded-lg bg-zinc-900 hover:bg-zinc-800 text-white font-medium">Guardar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div id="toast" class="hidden fixed bottom-5 right-5 z-[60] bg-zinc-900 text-white px-4 py-3 rounded-lg shadow-lg text-sm"></div>
+
+  <script src="assets/app.js"></script>
+</body>
+</html>

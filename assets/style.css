@@ -1,0 +1,7 @@
+html { scroll-behavior: smooth; }
+body { font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif; }
+.chart-box { position: relative; height: 280px; }
+.chart-box canvas { max-height: 280px; }
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-thumb { background: #d4d4d8; border-radius: 999px; }
+::-webkit-scrollbar-track { background: #f4f4f5; }
